@@ -3,6 +3,7 @@ from django.db import models
 # from utils.helpers import FileCleanupMixin
 # from django.db.models.signals import post_delete, pre_save
 # from django.dispatch import receiver
+from datetime import date
 from ipdb import set_trace
 
 # Create your models here.
@@ -167,7 +168,7 @@ class Talk(models.Model):
 
 class Subscriber(models.Model):
     email = models.EmailField(max_length=128)
-    subscribed_on = models.DateField()
+    subscribed_on = models.DateField(auto_now_add=True)
 
 class Query(models.Model):
     OCCUPATION_CHOICES = [

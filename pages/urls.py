@@ -1,10 +1,13 @@
 from django.urls import path
-from .api_views import PersonInfoView, NewsView, HighlightPublicationView, \
-    HighlightProjectView, HighlightTalkView
+from .api_views import LayoutView, UserBioView, PersonInfoView, NewsView, \
+    SubscriberView, HighlightPublicationView, HighlightProjectView, HighlightTalkView
 
 urlpatterns = [
-    path('owner-info/', PersonInfoView.as_view(), name='owner-info'),
+    path('layout/', LayoutView.as_view(), name='layout'),
+    path('user-bio/', UserBioView.as_view(), name='user-bio'),
     path('news/', NewsView.as_view(), name='news'),
+    path('subscribe/', SubscriberView.as_view(), name='subscribe'),
+    path('owner-info/', PersonInfoView.as_view(), name='owner-info'),
     path(
         'highlight-publication/', HighlightPublicationView.as_view(),
         name='highlight-publication'

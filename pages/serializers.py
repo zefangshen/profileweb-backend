@@ -4,8 +4,95 @@ from .models import Person, Position, Address, Email, WebLink, PhoneNumber, \
 from utils.helpers import split_date
 from ipdb import set_trace
 
+
 # =====
 # general serializers
+class WebLinkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WebLink
+        fields = ['id', 'name', 'url', 'icon']
+
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = ['city', 'state', 'province', 'country']
+
+class LayoutSerializer(serializers.ModelSerializer):
+    weblinks = WebLinkSerializer(many=True, read_only=True)
+    copyright_year = serializers.SerializerMethodField()
+    updated_on = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Person
+        fields = [
+            'first_name', 'middle_name', 'last_name', 'copyright_year',
+            'updated_on', 'weblinks'
+        ]
+
+    def get_copyright_year(self, instance):
+        return instance.copyright_date.year
+
+    def get_updated_on(self, instance):
+        return {
+            'year': instance.updated_on.year,
+            'month': instance.updated_on.month,
+            'day': instance.updated_on.day,
+        }
+
+class UserBioSerializer(serializers.ModelSerializer):
+    position = serializers.SerializerMethodField()
+    institution = serializers.SerializerMethodField()
+    address = serializers.SerializerMethodField()
+    email = serializers.SerializerMethodField()
+    weblinks = WebLinkSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Person
+        fields = [
+            'photo', 'first_name', 'middle_name', 'last_name', 'position',
+            'institution', 'address', 'email', 'weblinks', 'bio_short'
+        ]
+
+    def get_position(self, instance):
+        position = instance.positions.get(type='primary') 
+        return position.title
+
+    def get_institution(self, instance):
+        position = instance.positions.get(type='primary') 
+        return position.institution
+
+    def get_address(self, instance):
+        position = instance.positions.get(type='primary') 
+        address = AddressSerializer(position.address)
+        fields = ['city', 'state', 'province', 'country']
+        return {key: address.data[key] for key in fields }
+    
+    def get_email(self, instance):
+        email = instance.emails.get(type='primary')
+        return email.address
+
+class NewsSerializer(serializers.ModelSerializer):
+    date = serializers.SerializerMethodField()
+    class Meta:
+        model = News
+        fields = ['id', 'date', 'content', 'url']
+
+    def get_date(self, instance):
+        year = str(instance.date.year)[-2:]
+        month = str(instance.date.month)
+        month = '0' +  month if len(month) == 1 else month
+        day = str(instance.date.day)
+        day = '0' + day if len(day) == 1 else day
+        return {'year': year, 'month': month,'day': day}
+
+class SubscriberSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscriber
+        fields = ['email']
+
+# ==============================================================================
+# separation line
+
 class PositionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Position
@@ -16,10 +103,6 @@ class AddressSerializer(serializers.ModelSerializer):
         model = Address
         fields = ['city', 'state', 'province', 'country']
 
-class WebLinkSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = WebLink
-        fields = ['id', 'name', 'url', 'icon']
 
 class HighlightPublicationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -61,11 +144,6 @@ class PersonInfoSerializer(serializers.ModelSerializer):
             'month': instance.updated_on.month,
             'day': instance.updated_on.day,
         }
-
-class NewsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = News
-        fields = ['id', 'date', 'content', 'url']
 
 
 
@@ -113,10 +191,6 @@ class ProjectSerializer(serializers.ModelSerializer):
 
 
 
-class SubscriberSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Subscriber
-        fields = '__all__'
 
 class QuerySerializer(serializers.ModelSerializer):
     class Meta:

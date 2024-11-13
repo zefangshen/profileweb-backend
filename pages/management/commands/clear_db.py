@@ -7,6 +7,5 @@ from utils.test import fake_image
 class Command(BaseCommand):
     help = 'clear the entire database'
 
-    def handle(self, *args: Any, **options: Any) -> str | None:
+    def handle(self, *args: Any, **options: Any):
         Person.objects.all().delete()
-        pass

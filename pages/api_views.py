@@ -3,13 +3,51 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from .models import Person
-from .serializers import PersonInfoSerializer, PositionSerializer, \
-    AddressSerializer, WebLinkSerializer, NewsSerializer, \
-    HighlightPublicationSerializer, HighlightProjectSerializer
+from .serializers import LayoutSerializer, UserBioSerializer, NewsSerializer, \
+    SubscriberSerializer, PersonInfoSerializer, PositionSerializer, \
+    AddressSerializer, WebLinkSerializer,  HighlightPublicationSerializer, \
+    HighlightProjectSerializer
 from ipdb import set_trace
 
 # =====
 # home page
+
+class LayoutView(APIView):
+    def get(self, request):
+        person = Person.objects.get(role='user')
+        serializer = LayoutSerializer(person)
+        data = serializer.data
+        return Response(data, status=status.HTTP_200_OK)
+
+class UserBioView(APIView):
+    def get(self, request):
+        person = Person.objects.get(role='user')
+        serializer = UserBioSerializer(person)
+        data = serializer.data
+        return Response(data, status=status.HTTP_200_OK)
+
+class NewsView(APIView):
+    def get(self, request):
+        person = Person.objects.get(role='user')
+        news_items = person.news_items.all()
+        data = NewsSerializer(news_items, many=True).data
+
+        return Response(data, status=status.HTTP_200_OK)
+
+class SubscriberView(APIView):
+    def post(self, request):
+        data = {'email': request.data.get('email')}
+        serializer = SubscriberSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# ==============================================================================
+# separation line 
+
 class PersonInfoView(APIView):
     def get(self, request):
         # there should be only one user
@@ -30,13 +68,6 @@ class PersonInfoView(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
 
-class NewsView(APIView):
-    def get(self, request):
-        person = Person.objects.get(role='user')
-        news_items = person.news_items.all()
-        data = NewsSerializer(news_items, many=True).data
-
-        return Response(data, status=status.HTTP_200_OK)
 
 
 class HighlightPublicationView(APIView):
